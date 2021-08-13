@@ -1,0 +1,27 @@
+model_params:
+  in_channels: 3
+  hidden_layer: 'avgpool'
+  projection_size: 256
+  projection_hidden_size: 4096
+  moving_average_decay: 0.99
+
+exp_params:
+  dataset: sewer-mlp
+  data: "../../../data/sewer/paper/mlp"
+  image_size: 128
+  batch_size: 96
+  LR: 0.001
+  weight_decay: 0.0
+  scheduler_gamma: 0.95
+  beta1: 0.9
+  beta2: 0.999
+
+trainer_params:
+  gpus: 1
+  max_epochs: 100
+  n_workers: 16
+
+logging_params:
+  save_dir: "logs/"
+  name: "BYOL-nonorm"
+  manual_seed: 1265
