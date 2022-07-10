@@ -12,3 +12,10 @@ def basic_augmentation(img_height, img_width, img_pad=0, in_channels=3):
                             Augment.RandomBrightnessContrast(p=1.0),
                             Normalize()
                             ])
+def sample_augmentation(img_height, img_width, in_channels=3):
+    return Augment.Compose([Augment.RandomCrop(img_height, img_width, always_apply=True),
+                            Augment.HorizontalFlip(p=0.5),
+                            Augment.VerticalFlip(p=0.5),
+                            Normalize()
+                            ])
+    #trans.append(Augment.Flip(p=0.75)) #horizontal, vertical, or both

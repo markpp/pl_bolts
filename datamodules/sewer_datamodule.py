@@ -8,7 +8,7 @@ import os, sys
 sys.path.append('../')
 
 class SewerDataModule(pl.LightningDataModule):
-    def __init__(self, data_dir, dataset, batch_size, image_size, in_channels, n_workers):
+    def __init__(self, data_dir, dataset, batch_size, image_size, in_channels, n_workers, produce_labels=False):
         super().__init__()
         self.data_dir = data_dir
         self.dataset = dataset
@@ -16,35 +16,36 @@ class SewerDataModule(pl.LightningDataModule):
         self.image_size = image_size
         self.in_channels = in_channels
         self.n_workers = n_workers
+        self.produce_labels = produce_labels
 
     def setup(self, stage=None):
         from transforms.augmentation import basic_augmentation
 
         if stage == 'fit' or stage is None:
-            '''
-            #from datasets.sewer_dataset import SewerImageDataset
-            self.data_train = SewerImageDataset(root_dir=os.path.join(self.data_dir,self.dataset),
-                                                transform=basic_augmentation(img_height=self.image_size,
-                                                                             img_width=self.image_size,
-                                                                             img_pad=30,
-                                                                             in_channels=self.in_channels))
-            self.data_val = SewerImageDataset(root_dir=os.path.join(self.data_dir,'validation'),
-                                              transform=basic_augmentation(img_height=self.image_size,
-                                                                           img_width=self.image_size,
-                                                                           in_channels=self.in_channels))
-            '''
-            from datasets.sewer_dataset import SewerLabelDataset
-            self.data_train = SewerLabelDataset(root_dir=self.data_dir,
-                                                dataset=self.dataset,
-                                                transform=basic_augmentation(img_height=self.image_size,
-                                                                             img_width=self.image_size,
-                                                                             img_pad=30,
-                                                                             in_channels=self.in_channels))
-            self.data_val = SewerLabelDataset(root_dir=self.data_dir,
-                                              dataset='validation',
-                                              transform=basic_augmentation(img_height=self.image_size,
-                                                                           img_width=self.image_size,
-                                                                           in_channels=self.in_channels))
+            if self.produce_labels:
+                from datasets.sewer_dataset import SewerLabelDataset
+                self.data_train = SewerLabelDataset(root_dir=self.data_dir,
+                                                    dataset=self.dataset,
+                                                    transform=basic_augmentation(img_height=self.image_size,
+                                                                                 img_width=self.image_size,
+                                                                                 img_pad=30,
+                                                                                 in_channels=self.in_channels))
+                self.data_val = SewerLabelDataset(root_dir=self.data_dir,
+                                                  dataset='validation',
+                                                  transform=basic_augmentation(img_height=self.image_size,
+                                                                               img_width=self.image_size,
+                                                                               in_channels=self.in_channels))
+            else:
+                from datasets.sewer_dataset import SewerImageDataset
+                self.data_train = SewerImageDataset(root_dir=os.path.join(self.data_dir,self.dataset),
+                                                    transform=basic_augmentation(img_height=self.image_size,
+                                                                                 img_width=self.image_size,
+                                                                                 img_pad=30,
+                                                                                 in_channels=self.in_channels))
+                self.data_val = SewerImageDataset(root_dir=os.path.join(self.data_dir,'validation'),
+                                                  transform=basic_augmentation(img_height=self.image_size,
+                                                                               img_width=self.image_size,
+                                                                               in_channels=self.in_channels))
 
     def train_dataloader(self):
         return DataLoader(self.data_train, batch_size=self.batch_size, num_workers=self.n_workers, pin_memory=True, shuffle=True)

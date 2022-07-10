@@ -19,6 +19,18 @@ class AutoEncoder(pl.LightningModule):
                             nb_levels=config.nb_levels,
                             scaling_rates=config.scaling_rates)
 
+        self.model = MAE(
+                        img_size = args.crop_size,
+                        patch_size = args.patch_size,  
+                        encoder_dim = 768,
+                        encoder_depth = 12,
+                        encoder_heads = 12,
+                        decoder_dim = 512,
+                        decoder_depth = 8,
+                        decoder_heads = 16, 
+                        mask_ratio = 0.75
+                        )
+
         # loss weighting
         self.beta =config.beta
 
@@ -26,7 +38,7 @@ class AutoEncoder(pl.LightningModule):
         self.learning_rate = config.learning_rate
 
     def forward(self, x):
-        y, diffs, encs, codes, ids, ys = self.vqvae2(x)
+        y, diffs, encs, codes, ids, ys = self.model(x)
         return y, diffs, encs, codes, ids, ys
 
     def configure_optimizers(self):

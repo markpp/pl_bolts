@@ -10,12 +10,13 @@ from pytorch_lightning import Trainer
 from torchsummary import summary
 import torch.nn.functional as F
 
-from autoencoder import Autoencoder
 
 def create_datamodule(config):
     sys.path.append('../../')
 
-    if 'sewer' in config['exp_params']['data']:
+    if 'sentinel' in config['exp_params']['data']:
+        print("toto")
+        '''
         from datamodules.sewer_datamodule import SewerDataModule
         dm = SewerDataModule(data_dir=config['exp_params']['data'],
                              dataset=config['exp_params']['dataset'],
@@ -26,8 +27,9 @@ def create_datamodule(config):
                              produce_labels=False)
         dm.setup()
         return dm
+        '''
     elif config['exp_params']['dataset']=='themal':
-        from harbour_datamodule import HarbourDataModule
+        #from harbour_datamodule import HarbourDataModule
         print("toto")
     else:
         print("no such dataset: {}".format(config['exp_params']['data']))
@@ -49,21 +51,16 @@ if __name__ == '__main__':
                     default='trained_models/model.pt', help="path to the checkpoint file")
     args = vars(ap.parse_args())
 
-    with open(args['config'], 'r') as file:
-        try:
-            config = yaml.safe_load(file)
-        except yaml.YAMLError as exc:
-            print(exc)
 
     dm = create_datamodule(config)
     if dm == None:
         print("failed to create datamodule")
         exit()
 
-    #logger = loggers.TensorBoardLogger(config['logging_params']['save_dir'], name="{}_{}_{}".format(config['exp_params']['data'], config['exp_params']['image_size'],config['model_params']['in_channels']))
-    model = Autoencoder(config)
+    from lightning_model import GAN
+    model = GAN(config)
     # print detailed summary with estimated network size
-    summary(model, (config['model_params']['in_channels'], config['exp_params']['image_size'], config['exp_params']['image_size']), device="cpu")
+    #summary(model, (config['model_params']['in_channels'], config['exp_params']['image_size'], config['exp_params']['image_size']), device="cpu")
 
     from pytorch_lightning.loggers import TensorBoardLogger
     experiment_name = "{}_{}_{}_{}".format(config['logging_params']['name'],
@@ -78,7 +75,7 @@ if __name__ == '__main__':
                       #check_val_every_n_epoch=2,
                       #limit_val_batches=0.1,
                       #sync_batchnorm = True, # only necessary for multi-gpu training
-                      precision=16,
+                      #precision=16,
                       #gradient_clip_val=0.0, #0 means don’t clip.
                       benchmark=True,
                       logger=logger)

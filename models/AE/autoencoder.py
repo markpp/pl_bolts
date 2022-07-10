@@ -7,8 +7,7 @@ from torch.optim import Adam
 from torchsummary import summary
 import numpy as np
 
-#from model_64_64 import create_encoder, create_decoder
-from model_128_128 import create_encoder, create_decoder
+from model import create_encoder, create_decoder
 
 class Autoencoder(pl.LightningModule):
     def __init__(self, config):
@@ -45,7 +44,7 @@ class Autoencoder(pl.LightningModule):
 
     def validation_epoch_end(self, outputs):
         avg_loss = torch.stack([x["val_loss"] for x in outputs]).mean()
-        self.log('avg_val_loss', avg_loss, on_epoch=True, prog_bar=True)
+        self.log('avg_val_loss', avg_loss, on_epoch=True)
 
     def test_step(self, batch, batch_idx):
         x = batch
@@ -61,8 +60,7 @@ class Autoencoder(pl.LightningModule):
 
     def test_epoch_end(self, outputs):
         avg_loss = torch.stack([x["test_loss"] for x in outputs]).mean()
-        self.log('avg_test_loss', avg_loss, on_epoch=True, prog_bar=True)
-
+        self.log('avg_test_loss', avg_loss, on_epoch=True)
 
     def save_images(self, x, x_, name, n=16):
         """

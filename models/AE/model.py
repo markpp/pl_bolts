@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 
 def create_encoder(config, bias=False):
-    if config['exp_params']['image_size'] < 128:
+    if config['exp_params']['image_size'] >= 64 and config['exp_params']['image_size'] < 128:
         return nn.Sequential(
             # input (nc) x 64 x 64
             nn.Conv2d(config['model_params']['in_channels'], config['model_params']['nfe'], 4, 2, 1, bias=bias),
@@ -26,7 +26,7 @@ def create_encoder(config, bias=False):
             nn.LeakyReLU(True)
             # output (nz) x 1 x 1
         )
-    else:
+    elif config['exp_params']['image_size'] >= 128:
         return nn.Sequential(
             # input (nc) x 128 x 128
             nn.Conv2d(config['model_params']['in_channels'], config['model_params']['nfe'], 4, 2, 1, bias=False),
@@ -56,7 +56,7 @@ def create_encoder(config, bias=False):
         )
 
 def create_decoder(config, bias=False):
-    if config['exp_params']['image_size'] < 128:
+    if config['exp_params']['image_size'] >= 64 and config['exp_params']['image_size'] < 128:
         return nn.Sequential(
             # input (nz) x 1 x 1
             nn.ConvTranspose2d(config['model_params']['latent_dim'], config['model_params']['nfd'] * 8, 4, 1, 0, bias=bias),
@@ -79,7 +79,7 @@ def create_decoder(config, bias=False):
             nn.Tanh()
             # output (nc) x 64 x 64
         )
-    else:
+    elif config['exp_params']['image_size'] >= 128:
         return nn.Sequential(
             # input (nz) x 1 x 1
             nn.ConvTranspose2d(config['model_params']['latent_dim'], config['model_params']['nfd'] * 16, 4, 1, 0, bias=False),

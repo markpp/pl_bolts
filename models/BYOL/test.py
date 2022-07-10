@@ -24,7 +24,7 @@ def predict(data_dir, dataset, model, crop_size=256, save=False):
         img_name = row[0]
         wl = row[1].split('_')[1]
         if 'Null' in wl:
-            wl = -100
+            wl = 0
         else:
             wl = float(wl)
 

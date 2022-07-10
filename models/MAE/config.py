@@ -1,5 +1,22 @@
 from argparse import Namespace
 
+
+    # vit tiny & vit base 
+    # vit base: decoder: 384 4 12 
+    # vit base new: decoder: 512 8 16
+    
+    model = MAE(
+        img_size = args.crop_size,
+        patch_size = args.patch_size,  
+        encoder_dim = 768,
+        encoder_depth = 12,
+        encoder_heads = 12,
+        decoder_dim = 512,
+        decoder_depth = 8,
+        decoder_heads = 16, 
+        mask_ratio = 0.75
+    )
+    
 hparams = Namespace(**{# data
                        'name': 'VQVAE2',
                        'dataset': 'training',
