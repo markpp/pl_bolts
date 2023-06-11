@@ -8,11 +8,9 @@ from PIL import Image
 from tqdm import tqdm
 from typing import List, Dict
 import matplotlib.pyplot as plt
-from src.io.io import load_config
-from src.transform import ValTransform
-from torch.utils.data import DataLoader
-from src.model.vit import compute_attentions
-from src.model.utils import create_model, load_state_dict_ssl
+from src.utils import load_config
+#from src.vit import compute_attentions, create_model
+from src.functions import load_state_dict_ssl
 
 
 if __name__ == "__main__":
@@ -26,6 +24,7 @@ if __name__ == "__main__":
     BACKBONE = config["model"]["backbone"]
     IMG_SIZE = config["transform"]["img_size"]
 
+    from src.vit import create_model, compute_attentions
     model = create_model(
         backbone=BACKBONE,
         pretrained=False,
@@ -37,15 +36,14 @@ if __name__ == "__main__":
         ssl_state_dict=torch.load(ckpt_path, map_location="cpu")["state_dict"]
     )
 
-    transform = ValTransform(
-        model="dino",
-        **config["transform"]
-    )
-    from src.dataset import SSLWEEDS
+    from src.transforms import DINOTransform
+    val_transform = DINOTransform(**config["transform"])
+
+    from src.datasets import SSLWEEDS
     dataset = SSLWEEDS(
         root="/home/markpp/datasets/WeedSeason",
         train=False,
-        transform=transform
+        transform=val_transform
     )
 
     for _ in range(5):
@@ -57,7 +55,7 @@ if __name__ == "__main__":
         img = img.resize((IMG_SIZE, IMG_SIZE))
 
         # Augmentation
-        x, views = transform(img=img)
+        x, views = val_transform(img=img)
 
         # Input Tensor
         x = torch.from_numpy(x).unsqueeze(dim=0)
@@ -79,10 +77,10 @@ if __name__ == "__main__":
         for a in range(attentions.shape[0]):
             mask = attentions[a]
             mask = cv2.blur(mask,(10,10))
-            mask = np.stack([mask, mask, mask], axis=-1)
+            print(a, mask.min(), mask.max())
             mask = mask / mask.max()
+            mask = np.stack([mask, mask, mask], axis=-1)
             result = (mask * img).astype("uint8")
-
 
             ax[a,0].imshow(img)
             ax[a,0].set_title(f"Original - label {label}")

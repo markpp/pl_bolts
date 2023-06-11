@@ -1,3 +1,6 @@
+https://github.com/riccardomusmeci/lightning-ssl
+
+
 python3 train_ssl.py --config config/ssl/dino_tiny.yml --model dino --data-dir /home/markpp/datasets/WeedSeason --checkpoint-dir /home/markpp/github/lightning-ssl/checkpoints
 
 python3 linear_eval.py --ssl-config config/ssl/dino_tiny.yml --linear-config config/linear/config.yml --ssl-ckpt /home/markpp/github/lightning-ssl/checkpoints/epoch=180-step=27511-val_loss=4.682.ckpt --data-dir /home/markpp/datasets/WeedSeason --checkpoint-dir /home/markpp/github/lightning-ssl/checkpoints_linear

@@ -1,44 +1,6 @@
 import torch
 import torch.nn as nn
 from typing import List, Tuple
-from src.vit import create_vit
-import timm
-
-def create_model(
-    backbone: str, 
-    pretrained: bool = True,
-    img_size: int = None,
-    num_classes: int = 0
-) -> nn.Module:
-    """creates model's backbone
-
-    Args:
-        backbone (str): backbone name
-        pretrained (bool, optional): pretrained. Defaults to True.
-        img_size (int, optional): input image size. Defaults to 224.
-        num_classes (int, optional): number of output classes. Defaults to 0.
-
-    Returns:
-        nn.Module: backbone model
-    """
-    
-    if backbone.startswith("custom_"):
-        model_info=backbone.split("_")
-        img_size = int(model_info[-1]) if img_size is None else img_size
-        return create_vit(
-            vit_base=model_info[1],
-            model_size=model_info[2],
-            pretrained=pretrained,
-            patch_size=int(model_info[3].replace("patch", "")),
-            img_size=img_size,
-            num_classes=num_classes
-        )
-    else:
-        return timm.create_model(
-            model_name=backbone,
-            pretrained=pretrained,
-            num_classes=num_classes
-        )
 
 class MLP(nn.Module):
 

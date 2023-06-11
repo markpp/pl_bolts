@@ -1,4 +1,5 @@
 import math
+import numpy as np
 import torch
 import torch.nn as nn
 from functools import partial
@@ -284,3 +285,75 @@ def load_state_dict(
         pre_w = pretrained_state_dict[layer_name]
         model.state_dict()[layer_name].copy_(pre_w)
     return model
+
+
+def compute_attentions(
+    model: VisionTransformer,
+    x: torch.Tensor,
+    patch_size: int = 16
+) -> np.array:
+    
+    if not hasattr(model, "get_last_selfattention"):
+        print("Method get_lastselfattention is required.")
+        return None
+    
+    # praparing model
+    for p in model.parameters():
+        p.requires_grad = False
+    model.eval()
+    
+    # w, h feature map size
+    w_featmap = x.shape[-2] // patch_size
+    h_featmap = x.shape[-1] // patch_size
+    
+    # get last self attention
+    attentions = model.get_last_selfattention(x)
+    # number of heads
+    nh = attentions.shape[1]
+    
+    # we keep only the output patch attention
+    attentions = attentions[0, :, 0, 1:].reshape(nh, -1)
+    
+    attentions = attentions.reshape(nh, w_featmap, h_featmap)
+    attentions = nn.functional.interpolate(
+        attentions.unsqueeze(0), 
+        scale_factor=patch_size, 
+        mode="nearest"
+    )[0].cpu().numpy()    
+    return attentions
+
+def create_model(
+    backbone: str, 
+    pretrained: bool = True,
+    img_size: int = None,
+    num_classes: int = 0
+) -> nn.Module:
+    """creates model's backbone
+
+    Args:
+        backbone (str): backbone name
+        pretrained (bool, optional): pretrained. Defaults to True.
+        img_size (int, optional): input image size. Defaults to 224.
+        num_classes (int, optional): number of output classes. Defaults to 0.
+
+    Returns:
+        nn.Module: backbone model
+    """
+    
+    if backbone.startswith("custom_"):
+        model_info=backbone.split("_")
+        img_size = int(model_info[-1]) if img_size is None else img_size
+        return create_vit(
+            vit_base=model_info[1],
+            model_size=model_info[2],
+            pretrained=pretrained,
+            patch_size=int(model_info[3].replace("patch", "")),
+            img_size=img_size,
+            num_classes=num_classes
+        )
+    else:
+        return timm.create_model(
+            model_name=backbone,
+            pretrained=pretrained,
+            num_classes=num_classes
+        )
